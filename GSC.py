@@ -1,11 +1,11 @@
-"""Gerstein-Sonnhammer-Chothia (GSC) weighing algorithm (Gerstein, 1994).
+#!/usr/bin/env python3
+"""Gerstein-Sonnhammer-Chothia (GSC) weighing algorithm.
 
 This scripts implements a Python2 / 3 version of the GSC algorithm,
 a weighing scheme for the leaves of a (phylogenetic) tree which take into
 account both the length of the branches connecting each leaf to the root,
 and the total number of leaves found in each region of the tree
-(upweighing leaves coming from scarsely populated regions or
-connected to longer branches).
+(upweighing leaves coming from scarsely populated regions).
 The script takes advantage of the existing implementations of tree structures
 and level-order traversal from the ete3 Python library.
 
@@ -28,7 +28,7 @@ def testScoring(GSCfunction):
     funName = GSCfunction.__name__
 
     if not callable(GSCfunction):
-        sys.exit("The provided input {} is not a function.".format(funName))
+        sys.exit("The provided input function {} is not a function.".format(funName))
 
     newickTree = "(D:80,(C:50,(A:20,B:20)two:30)three:30);"
     tree = ete3.Tree(newickTree, format=1)
@@ -38,12 +38,18 @@ def testScoring(GSCfunction):
     correctScores = {'A': 43.75, 'C': 62.5, 'B': 43.75, 'D': 80.0}
 
     correct = 0
+
     for key in sorted(scores):
         print("Leaf {}: Correct score: {} - Score obtained by function {}: {}".format(key, correctScores[key], funName, scores[key]))
         if correctScores[key] == scores[key]:
             correct += 1
-            
-    print("{}% scores were correctly predicted ({} out of {})".format(float(correct)/len(scores)*100, correct, len(scores)))
+
+    print("{}% scores were correctly predicted ({} out of {})".format(float(correct)/len(scores) * 100, correct, len(scores)))
+
+    if correct == len(scores):
+        return True
+    else:
+        return False
 
 
 def GSC(t, normalise=True):
@@ -99,7 +105,7 @@ def GSC(t, normalise=True):
                         else:
                             scores[name] = scores[name] + child.dist * float(scores[name])/sumWeights
 
-    return(scores)
+    return scores
 
 
 def GSCnormalised(t):
@@ -113,4 +119,4 @@ def GSCnormalised(t):
     totalScore = float(sum([scores[key] for key in scores]))
     nScores = len(scores)
 
-    return({key: scores[key]/totalScore * nScores for key in scores})
+    return {key: scores[key]/totalScore * nScores for key in scores}
