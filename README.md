@@ -1,10 +1,10 @@
 # Python-GSC
 
-This scripts implements a Python2 / 3 version of the Gerstein-Sonnhammer-Chothia algorithm (GSC, Gerstein 1994), a weighing scheme for the leaves of a (phylogenetic) tree. The resulting weights are based on the total length of the branches connecting it to the most internal node of the tree, and on the total number of leaves found in each region of the tree. The final aim is to upweigh those leaves located in scarsely populated regions of the tree or connected to longer branches, and downweigh the others.
+This scripts implements a Python2 / 3 version of the Gerstein-Sonnhammer-Chothia algorithm (GSC, Gerstein 1994), a weighting scheme for the leaves of a (phylogenetic) tree, using the ete3 library for the parsing and traversal of the tree. The weights computed with this method are based on the total length of the branches connecting each node to the root, and on the total number of leaves found in each region of the tree. The final aim is to upweight those leaves located in scarsely populated regions of the tree or connected to longer branches, and downweight the others.
 
-The weight of each leaf is computed starting from the most external leaf of the tree and sequentially updated by visiting each level of the tree until the most internal node ("root") is reached. When a leaf *i* is first reached, its weight *w<sub>i</sub>* is initialised to zero. When each internal node *j* is reached, the weight *w<sub>i</sub>* of the *i = 1, ..., s* leaves connected to node *j* are updated according to two possible strategies:
-(i) if leaf *i* is a direct child of node *j*,  *w<sub>i</sub>* is updated to *w<sub>i</sub>* + *d<sub>i, j</sub>*, where *d<sub>i, j</sub>* is the length of the branch connecting *j* and *i*;
-(ii) if leaf *i* is not a direct child of node *j*, *w<sub>i</sub>* is updated to *w<sub>i</sub>* + *d<sub>k, j</sub>* \* *w<sub>i</sub>* / sum<sub>k</sub>(*w<sub>k</sub>*), where *d<sub>k, j</sub>* is the distance between node *j* and its direct child *k* that is a parent of *i*, and sum<sub>k</sub>(*w<sub>k</sub>*) is the sum of the current weights of all the leaves connected to *k*.
+The weight of each leaf is computed starting from the most external leaf of the tree and sequentially updated by visiting each level of the tree until the root is reached. All the nodes on each level are visited before moving to the next one. When a leaf *i* is first reached, its weight *w<sub>i</sub>* is initialised to zero. When each internal node *j* is reached, the weight *w<sub>i</sub>* of the leaves connected to it are updated according to two possible strategies:
+(i) if leaf *i* is a direct child of node *j*,  *w<sub>i</sub>* is updated to *w<sub>i</sub>* + *d<sub>j, i</sub>*, where *d<sub>j, i</sub>* is the length of the branch connecting *j* and *i*;
+(ii) if leaf *i* is not a direct child of node *j*, *w<sub>i</sub>* is updated to *w<sub>i</sub>* + *d<sub>j, a</sub>* \* *w<sub>i</sub>* / sum<sub>k</sub>(*w<sub>k</sub>*), where *d<sub>j, a</sub>* is the distance between node *j* and its direct child *a* that is a parent of *i*, and sum<sub>k</sub>(*w<sub>k</sub>*) is the sum of the current weights of all the leaves connected to *a*.
 
 The following example (taken from the paper) illustrates how the algorithm works for a simple ultrametric tree. Here, A, B, C, D are the leaves of the tree; (1), (2), (3) are the internal nodes; and the numbers displayed on the branches of the tree correspond to their length.
 
@@ -19,7 +19,7 @@ The following example (taken from the paper) illustrates how the algorithm works
 |-------------------------|----------------------------------|---------------------------------|-----------------------------------|----|
 | Initial| 0                                | 0                               | 0                                 | 0  |
 | At (1)            | 0 + 20                               | 0 + 20                              | 0                                 | 0  |
-| At (2)            | 20 + 30 * 20/40 = 35                  | 20 + 30 * 20/40 = 35                 | 50                                | 0  |
+| At (2)            | 20 + 30 * 20/(20+20) = 35                  | 20 + 30 * 20/(20+20) = 35                 | 50                                | 0  |
 | At (3)            | 35 + 30 * 35 / (35 + 35 + 50) = 43.75  | 35 + 30 * 35 / (35 + 35 + 50) = 43.75 | 50 + 30  * 50 / (35 + 35 + 50)  = 62.5 | 80 |
 | Final   | 43.75                            | 43.75                           | 62.5                              | 80 |
 
